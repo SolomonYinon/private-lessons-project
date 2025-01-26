@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import json
-from data_validation import validate_data
+from registration.data_validation import validate_data
 
 class RegistrationForm:
     def __init__(self, master):

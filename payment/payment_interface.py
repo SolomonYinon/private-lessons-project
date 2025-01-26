@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import json
-from payment_gateway_integration import integrate_payment_gateway
+from payment.payment_gateway_integration import integrate_payment_gateway
 
 class PaymentInterface:
     def __init__(self, master):

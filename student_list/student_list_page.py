@@ -1,37 +1,37 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import json
+from .teacher_student_display_logic import get_teacher_students, get_student_details
 
 class StudentListPage:
-    def __init__(self, master):
+    def __init__(self, master, teacher_id=None):
         self.master = master
+        self.teacher_id = teacher_id
         master.title("Student List")
-        master.geometry('600x400')
+        master.geometry('800x600')
 
-        # Title Label
-        title_label = ttk.Label(master, text="List of Students", font=("Helvetica", 16))
-        title_label.pack(pady=10)
+        # Create frame
+        self.frame = ttk.Frame(master)
+        self.frame.pack(pady=20)
 
-        # Treeview to display student details
-        self.tree = ttk.Treeview(master, columns=("ID", "Name", "Email", "Registered", "Paid"), show="headings")
-        self.tree.heading("ID", text="ID")
-        self.tree.heading("Name", text="Name")
-        self.tree.heading("Email", text="Email")
-        self.tree.heading("Registered", text="Registered")
-        self.tree.heading("Paid", text="Paid")
-        self.tree.pack(pady=20, fill=tk.BOTH, expand=True)
+        # Label for showing student info
+        self.info_label = ttk.Label(self.frame, text="", wraplength=700)
+        self.info_label.pack(pady=10)
 
-        # Load student data
-        self.load_students()
+        self.populate_student_list()
 
-    def load_students(self):
+    def populate_student_list(self):
         try:
             with open('data.json', 'r') as f:
                 data = json.load(f)
-                for student in data['students']:
-                    self.tree.insert("", tk.END, values=(student['id'], student['name'], student['email'], student['registered'], student['paid']))
-        except FileNotFoundError:
-            messagebox.showerror("Error", "Data file not found.")
+                students = data.get('students', [])  # Get all students
+                if students:
+                    student_names = [f"{student['name']} (ID: {student['id']})" for student in students]
+                    self.info_label.config(text="Students:\n" + "\n".join(student_names))
+                else:
+                    self.info_label.config(text="No students found.")
+        except Exception as e:
+            self.info_label.config(text=f"Error loading students: {str(e)}")
 
 if __name__ == '__main__':
     root = tk.Tk()

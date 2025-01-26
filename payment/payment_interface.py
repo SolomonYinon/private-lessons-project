@@ -1,125 +1,113 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import json
-from payment.payment_gateway_integration import integrate_payment_gateway
+from datetime import datetime
+from project.payment.payment_gateway_integration import process_payment, get_payment_history
 
 class PaymentInterface:
     def __init__(self, master):
         self.master = master
-        master.title("Payment Interface")
-        master.geometry('400x300')  # Set window size
+        master.title("Payment Processing")
+        master.geometry('800x600')
 
-        # Create a frame for better organization
-        frame = ttk.Frame(master, padding="10")
-        frame.pack(fill=tk.BOTH, expand=True)
+        # Create main frame
+        self.frame = ttk.Frame(master, padding="20")
+        self.frame.pack(fill=tk.BOTH, expand=True)
 
         # Title Label
-        title_label = ttk.Label(frame, text="Payment Options", font=("Helvetica", 16))
+        title_label = ttk.Label(self.frame, text="Process Payment", font=("Helvetica", 16))
         title_label.pack(pady=10)
 
-        # Payment Options Listbox
-        self.payment_options = tk.Listbox(frame, width=50)
-        self.payment_options.pack(pady=10)
+        # Student ID
+        ttk.Label(self.frame, text="Student ID:").pack(anchor=tk.W, pady=5)
+        self.student_id_entry = ttk.Entry(self.frame)
+        self.student_id_entry.pack(fill=tk.X, pady=5)
 
-        self.load_payment_options()  # Load payment options from a data source
-        self.payment_options.bind('<<ListboxSelect>>', self.on_option_select)
-        self.selected_option = None
+        # Amount
+        ttk.Label(self.frame, text="Amount:").pack(anchor=tk.W, pady=5)
+        self.amount_entry = ttk.Entry(self.frame)
+        self.amount_entry.pack(fill=tk.X, pady=5)
 
-        # Login Button
-        self.login_button = ttk.Button(frame, text="Login", command=self.login_user)
-        self.login_button.pack(pady=20)
+        # Payment Method
+        ttk.Label(self.frame, text="Payment Method:").pack(anchor=tk.W, pady=5)
+        self.payment_method = ttk.Combobox(self.frame, values=['Cash', 'Credit Card', 'Bank Transfer'])
+        self.payment_method.set('Cash')
+        self.payment_method.pack(fill=tk.X, pady=5)
 
-        # Sample Payment Button
-        self.pay_button = ttk.Button(frame, text="Pay Now", command=self.process_payment)
-        self.pay_button.pack(pady=20)
+        # Process Button
+        ttk.Button(self.frame, text="Process Payment", command=self.process_payment).pack(pady=20)
 
-    def load_payment_options(self):
-        try:
-            with open('payment_options.json', 'r') as f:
-                options = json.load(f)
-                for option in options:
-                    self.payment_options.insert(tk.END, option)
-        except FileNotFoundError:
-            print("No payment options found.")
+        # Payment History
+        history_label = ttk.Label(self.frame, text="Payment History", font=("Helvetica", 12))
+        history_label.pack(pady=10)
 
-    def on_option_select(self, event):
-        selected_indices = self.payment_options.curselection()
-        if selected_indices:
-            self.selected_option = self.payment_options.get(selected_indices[0])
-        else:
-            self.selected_option = None
+        # Create Treeview for payment history
+        columns = ('Date', 'Student ID', 'Amount', 'Method', 'Status')
+        self.tree = ttk.Treeview(self.frame, columns=columns, show='headings')
+        
+        # Define column headings
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=100)
 
-    def login_user(self):
-        login_window = tk.Toplevel(self.master)
-        login_window.title("Login")
-        login_window.geometry('300x200')
+        # Add scrollbar
+        scrollbar = ttk.Scrollbar(self.frame, orient=tk.VERTICAL, command=self.tree.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        self.tree.pack(pady=10, fill=tk.BOTH, expand=True)
 
-        ttk.Label(login_window, text="Student ID:").pack(pady=5)
-        self.student_id_entry = ttk.Entry(login_window)
-        self.student_id_entry.pack(pady=5)
-
-        ttk.Label(login_window, text="Password:").pack(pady=5)
-        self.password_entry = ttk.Entry(login_window, show='*')
-        self.password_entry.pack(pady=5)
-
-        ttk.Button(login_window, text="Login", command=self.check_login).pack(pady=20)
-
-    def check_login(self):
-        student_id = self.student_id_entry.get()
-        password = self.password_entry.get()
-        with open('data.json', 'r') as f:
-            data = json.load(f)
-            student = next((s for s in data['students'] if s['id'] == student_id and s['password'] == password), None)
-            if student and not student['paid']:
-                self.show_payment_form()
-            else:
-                tk.messagebox.showerror("Error", "Invalid credentials or already paid.")
-
-    def show_payment_form(self):
-        payment_window = tk.Toplevel(self.master)
-        payment_window.title("Credit Card Payment")
-        payment_window.geometry('400x300')
-
-        ttk.Label(payment_window, text="Enter Credit Card Details:").pack(pady=10)
-
-        ttk.Label(payment_window, text="Card Number:").pack(pady=5)
-        self.card_number_entry = ttk.Entry(payment_window)
-        self.card_number_entry.pack(pady=5)
-
-        ttk.Label(payment_window, text="Expiration Date (MM/YY):").pack(pady=5)
-        self.expiration_entry = ttk.Entry(payment_window)
-        self.expiration_entry.pack(pady=5)
-
-        ttk.Label(payment_window, text="CVV:").pack(pady=5)
-        self.cvv_entry = ttk.Entry(payment_window)
-        self.cvv_entry.pack(pady=5)
-
-        ttk.Button(payment_window, text="Pay Now", command=self.process_payment).pack(pady=20)
+        # Load initial payment history
+        self.load_payment_history()
 
     def process_payment(self):
-        student_id = self.student_id_entry.get()
-        with open('data.json', 'r') as f:
-            data = json.load(f)
-            student = next((s for s in data['students'] if s['id'] == student_id), None)
-            if student:
-                # Assuming payment is successful
-                student['paid'] = True
-                # Update the payments list
-                payment_data = {
-                    'student_id': student_id,
-                    'amount': 100,
-                    'date': "2025-01-09T12:51:11+02:00",
-                    'method': "credit_card",
-                    'status': "completed"
-                }
-                data['payments'].append(payment_data)
-                with open('data.json', 'w') as f:
-                    json.dump(data, f)
-                tk.messagebox.showinfo("Success", "Payment processed successfully!")
-            else:
-                tk.messagebox.showerror("Error", "Student not registered.")
+        try:
+            student_id = int(self.student_id_entry.get().strip())
+            amount = float(self.amount_entry.get().strip())
+        except ValueError:
+            messagebox.showerror("Error", "Invalid student ID or amount")
+            return
+
+        payment_data = {
+            'student_id': student_id,
+            'amount': amount,
+            'payment_method': self.payment_method.get(),
+            'date': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        success, message = process_payment(payment_data)
+        if success:
+            messagebox.showinfo("Success", message)
+            self.clear_form()
+            self.load_payment_history()
+        else:
+            messagebox.showerror("Error", message)
+
+    def load_payment_history(self):
+        # Clear existing items
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Get payment history
+        success, payments = get_payment_history()
+        if success:
+            for payment in payments:
+                self.tree.insert('', tk.END, values=(
+                    payment['date'],
+                    payment['student_id'],
+                    f"${payment['amount']:.2f}",
+                    payment['payment_method'],
+                    payment['status']
+                ))
+        else:
+            messagebox.showwarning("Warning", payments)
+
+    def clear_form(self):
+        self.student_id_entry.delete(0, tk.END)
+        self.amount_entry.delete(0, tk.END)
+        self.payment_method.set('Cash')
+        self.student_id_entry.focus()
 
 if __name__ == '__main__':
     root = tk.Tk()
-    payment = PaymentInterface(root)
+    app = PaymentInterface(root)
     root.mainloop()

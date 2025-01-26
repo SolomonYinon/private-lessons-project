@@ -1,113 +1,201 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import json
+from datetime import datetime
+from .lesson_display_logic import get_lessons, add_lesson, update_lesson_status
 
 class ScheduleInterface:
     def __init__(self, master):
         self.master = master
-        master.title("Schedule")
-        master.geometry('400x400')
+        master.title("Lesson Schedule")
+        master.geometry('800x600')
 
-        # Title Label
-        title_label = ttk.Label(master, text="Scheduled Lessons", font=("Helvetica", 16))
-        title_label.pack(pady=10)
+        # Create main frame
+        self.frame = ttk.Frame(master, padding="20")
+        self.frame.pack(fill=tk.BOTH, expand=True)
 
-        # Listbox to display lessons
-        self.lesson_listbox = tk.Listbox(master, width=50)
-        self.lesson_listbox.pack(pady=20)
+        # Create notebook for tabs
+        self.notebook = ttk.Notebook(self.frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
 
-        # Edit Button
-        self.edit_button = ttk.Button(master, text="Edit Selected", command=self.edit_lesson)
-        self.edit_button.pack(pady=10)
+        # Create tabs
+        self.schedule_tab = ttk.Frame(self.notebook)
+        self.add_lesson_tab = ttk.Frame(self.notebook)
+        
+        self.notebook.add(self.schedule_tab, text='View Schedule')
+        self.notebook.add(self.add_lesson_tab, text='Add Lesson')
 
-        # Load lessons
-        self.load_lessons()
+        # Setup schedule view
+        self.setup_schedule_view()
+        
+        # Setup add lesson form
+        self.setup_add_lesson_form()
 
-    def load_lessons(self):
-        try:
-            with open('data.json', 'r') as f:
-                data = json.load(f)
-                for lesson in data['lessons']:
-                    teacher_name = next((t['name'] for t in data['teachers'] if t['id'] == lesson['teacher_id']), "Unknown Teacher")
-                    lesson_display = f"{lesson['name']} (ID: {lesson['id']})"
-                    print(lesson_display)  # Debugging: print the lesson display string
-                    self.lesson_listbox.insert(tk.END, lesson_display)
-        except FileNotFoundError:
-            messagebox.showerror("Error", "Data file not found.")
+    def setup_schedule_view(self):
+        # Filter Frame
+        filter_frame = ttk.LabelFrame(self.schedule_tab, text="Filters", padding="10")
+        filter_frame.pack(fill=tk.X, pady=10)
 
-    def edit_lesson(self):
-        selected_index = self.lesson_listbox.curselection()
-        if selected_index:
-            selected_lesson = self.lesson_listbox.get(selected_index[0])
-            try:
-                lesson_id = selected_lesson.split(' (ID: ')[1][:-1]  # Extract ID
-                self.open_edit_window(lesson_id)
-            except IndexError:
-                messagebox.showerror("Error", "Selected lesson format is incorrect.")
+        # Date Filter
+        ttk.Label(filter_frame, text="Date:").pack(side=tk.LEFT, padx=5)
+        self.date_entry = ttk.Entry(filter_frame, width=10)
+        self.date_entry.pack(side=tk.LEFT, padx=5)
+        self.date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
+
+        # Teacher Filter
+        ttk.Label(filter_frame, text="Teacher ID:").pack(side=tk.LEFT, padx=5)
+        self.teacher_filter = ttk.Entry(filter_frame, width=10)
+        self.teacher_filter.pack(side=tk.LEFT, padx=5)
+
+        # Student Filter
+        ttk.Label(filter_frame, text="Student ID:").pack(side=tk.LEFT, padx=5)
+        self.student_filter = ttk.Entry(filter_frame, width=10)
+        self.student_filter.pack(side=tk.LEFT, padx=5)
+
+        # Apply Filter Button
+        ttk.Button(filter_frame, text="Apply Filters", command=self.refresh_schedule).pack(side=tk.LEFT, padx=20)
+
+        # Schedule Treeview
+        columns = ('ID', 'Date', 'Time', 'Teacher', 'Student', 'Duration', 'Status')
+        self.tree = ttk.Treeview(self.schedule_tab, columns=columns, show='headings')
+        
+        # Define column headings
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=100)
+
+        # Add scrollbar
+        scrollbar = ttk.Scrollbar(self.schedule_tab, orient=tk.VERTICAL, command=self.tree.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        self.tree.pack(pady=10, fill=tk.BOTH, expand=True)
+
+        # Status Update Frame
+        status_frame = ttk.Frame(self.schedule_tab)
+        status_frame.pack(fill=tk.X, pady=10)
+
+        self.status_combo = ttk.Combobox(status_frame, values=['scheduled', 'completed', 'cancelled'])
+        self.status_combo.set('completed')
+        self.status_combo.pack(side=tk.LEFT, padx=5)
+
+        ttk.Button(status_frame, text="Update Status", command=self.update_status).pack(side=tk.LEFT, padx=5)
+
+        # Initial load
+        self.refresh_schedule()
+
+    def setup_add_lesson_form(self):
+        # Create form frame
+        form_frame = ttk.Frame(self.add_lesson_tab, padding="20")
+        form_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Teacher ID
+        ttk.Label(form_frame, text="Teacher ID:").pack(anchor=tk.W, pady=5)
+        self.teacher_id_entry = ttk.Entry(form_frame)
+        self.teacher_id_entry.pack(fill=tk.X, pady=5)
+
+        # Student ID
+        ttk.Label(form_frame, text="Student ID:").pack(anchor=tk.W, pady=5)
+        self.student_id_entry = ttk.Entry(form_frame)
+        self.student_id_entry.pack(fill=tk.X, pady=5)
+
+        # Date
+        ttk.Label(form_frame, text="Date (YYYY-MM-DD):").pack(anchor=tk.W, pady=5)
+        self.date_entry = ttk.Entry(form_frame)
+        self.date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
+        self.date_entry.pack(fill=tk.X, pady=5)
+
+        # Time
+        ttk.Label(form_frame, text="Time (HH:MM):").pack(anchor=tk.W, pady=5)
+        self.time_entry = ttk.Entry(form_frame)
+        self.time_entry.insert(0, datetime.now().strftime("%H:%M"))
+        self.time_entry.pack(fill=tk.X, pady=5)
+
+        # Duration (minutes)
+        ttk.Label(form_frame, text="Duration (minutes):").pack(anchor=tk.W, pady=5)
+        self.duration_entry = ttk.Entry(form_frame)
+        self.duration_entry.insert(0, "60")
+        self.duration_entry.pack(fill=tk.X, pady=5)
+
+        # Add Button
+        ttk.Button(form_frame, text="Schedule Lesson", command=self.schedule_lesson).pack(pady=20)
+
+    def refresh_schedule(self):
+        # Clear existing items
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Get filter values
+        teacher_id = self.teacher_filter.get().strip()
+        student_id = self.student_filter.get().strip()
+        date = self.date_entry.get().strip()
+
+        # Convert IDs to int if provided
+        teacher_id = int(teacher_id) if teacher_id else None
+        student_id = int(student_id) if student_id else None
+
+        # Get lessons
+        success, lessons = get_lessons(teacher_id, student_id, date)
+        if success:
+            for lesson in lessons:
+                self.tree.insert('', tk.END, values=(
+                    lesson['id'],
+                    lesson['date'],
+                    lesson['time'],
+                    lesson['teacher_id'],
+                    lesson['student_id'],
+                    f"{lesson['duration']} min",
+                    lesson['status']
+                ))
         else:
-            messagebox.showerror("Error", "No lesson selected.")
+            messagebox.showwarning("Warning", lessons)
 
-    def open_edit_window(self, lesson_id):
-        edit_window = tk.Toplevel(self.master)
-        edit_window.title("Edit Lesson")
-
-        # Load lesson data
-        with open('data.json', 'r') as f:
-            data = json.load(f)
-            lesson = next((l for l in data['lessons'] if l['id'] == int(lesson_id)), None)
-
-        # Create fields for editing
-        ttk.Label(edit_window, text="Lesson Name:").pack(pady=5)
-        name_entry = ttk.Entry(edit_window)
-        name_entry.insert(0, lesson['name'])
-        name_entry.pack(pady=5)
-
-        ttk.Label(edit_window, text="Schedule:").pack(pady=5)
-        schedule_entry = ttk.Entry(edit_window)
-        schedule_entry.insert(0, lesson['schedule'])
-        schedule_entry.pack(pady=5)
-
-        # Teacher Selection
-        ttk.Label(edit_window, text="Select Teacher:").pack(pady=5)
-        teacher_combobox = ttk.Combobox(edit_window)
-        self.load_teachers(teacher_combobox, lesson['teacher_id'])
-        teacher_combobox.pack(pady=5)
-
-        # Student Selection
-        ttk.Label(edit_window, text="Select Students (comma separated IDs):").pack(pady=5)
-        student_entry = ttk.Entry(edit_window)
-        student_entry.insert(0, ', '.join(lesson['student_ids']))  # Pre-fill with current student IDs
-        student_entry.pack(pady=5)
-
-        ttk.Button(edit_window, text="Save", command=lambda: self.save_changes(lesson_id, name_entry.get(), schedule_entry.get(), teacher_combobox.get(), student_entry.get())).pack(pady=20)
-
-    def load_teachers(self, teacher_combobox, selected_teacher_id):
+    def schedule_lesson(self):
         try:
-            with open('data.json', 'r') as f:
-                data = json.load(f)
-                teachers = [f"{teacher['name']} (ID: {teacher['id']})" for teacher in data['teachers']]
-                teacher_combobox['values'] = teachers
-                # Set the selected teacher
-                if selected_teacher_id:
-                    selected_teacher = next((t for t in data['teachers'] if t['id'] == selected_teacher_id), None)
-                    if selected_teacher:
-                        teacher_combobox.set(f"{selected_teacher['name']} (ID: {selected_teacher['id']})")
-        except FileNotFoundError:
-            messagebox.showerror("Error", "Data file not found.")
+            lesson_data = {
+                'teacher_id': int(self.teacher_id_entry.get().strip()),
+                'student_id': int(self.student_id_entry.get().strip()),
+                'date': self.date_entry.get().strip(),
+                'time': self.time_entry.get().strip(),
+                'duration': int(self.duration_entry.get().strip())
+            }
+        except ValueError:
+            messagebox.showerror("Error", "Please enter valid numeric values for IDs and duration")
+            return
 
-    def save_changes(self, lesson_id, name, schedule, teacher, students):
-        with open('data.json', 'r') as f:
-            data = json.load(f)
-            lesson = next((l for l in data['lessons'] if l['id'] == int(lesson_id)), None)
-            if lesson:
-                lesson['name'] = name
-                lesson['schedule'] = schedule
-                lesson['teacher_id'] = teacher.split(' (ID: ')[1][:-1]  # Extract teacher ID
-                lesson['student_ids'] = [s.strip() for s in students.split(',')]  # Update student IDs
+        success, message = add_lesson(lesson_data)
+        if success:
+            messagebox.showinfo("Success", message)
+            self.clear_form()
+            self.notebook.select(0)  # Switch to schedule view
+            self.refresh_schedule()
+        else:
+            messagebox.showerror("Error", message)
 
-        with open('data.json', 'w') as f:
-            json.dump(data, f)
-        messagebox.showinfo("Success", "Lesson details updated!")
+    def update_status(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Warning", "Please select a lesson to update")
+            return
+
+        lesson_id = int(self.tree.item(selected_item[0])['values'][0])
+        new_status = self.status_combo.get()
+
+        success, message = update_lesson_status(lesson_id, new_status)
+        if success:
+            messagebox.showinfo("Success", message)
+            self.refresh_schedule()
+        else:
+            messagebox.showerror("Error", message)
+
+    def clear_form(self):
+        self.teacher_id_entry.delete(0, tk.END)
+        self.student_id_entry.delete(0, tk.END)
+        self.date_entry.delete(0, tk.END)
+        self.date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
+        self.time_entry.delete(0, tk.END)
+        self.time_entry.insert(0, datetime.now().strftime("%H:%M"))
+        self.duration_entry.delete(0, tk.END)
+        self.duration_entry.insert(0, "60")
 
 if __name__ == '__main__':
     root = tk.Tk()

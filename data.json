@@ -1,1 +1,128 @@
-{"students": [{"id": "215800335", "name": "Yinon Solomon", "email": "yinon@gmail.com", "password": "123456", "registered": true, "paid": true}, {"id": 1234, "name": "nachshon", "email": "abc@gmail.com", "password": "123456", "registered": true, "paid": false}], "teachers": [{"id": 1, "name": "muhammad", "email": "muhammad@gmail.com", "subject": "computers"}, {"id": 2, "name": "nachshon", "email": "abc@gmail.com", "subject": "math"}], "lessons": [{"id": 1, "name": "computer", "teacher_id": "1", "student_ids": ["215800335"], "schedule": "2025-01-10T10:00:00"}, {"id": 2, "name": "math", "teacher_id": 1, "student_ids": ["215800335"], "schedule": "2025-08-06 12:30"}, {"id": 3, "name": "math", "teacher_id": "2", "student_ids": ["nachshon"], "schedule": "2025-01-12 20:00"}], "payments": [{"student_id": "215800335", "amount": 100, "date": "2025-01-09T12:51:11+02:00", "method": "credit_card", "status": "completed"}]}
+{
+    "students": [
+        {
+            "id": 215800335,
+            "name": "Yinon Solomon",
+            "email": "yinon@gmail.com",
+            "grade": "12th",
+            "active": true,
+            "registered": true,
+            "paid": true
+        },
+        {
+            "id": 1234,
+            "name": "Nachshon",
+            "email": "abc@gmail.com",
+            "grade": "11th",
+            "active": true,
+            "registered": true,
+            "paid": false
+        },
+        {
+            "id": 3,
+            "name": "Bob",
+            "email": "bob@gmail.com",
+            "grade": "10th",
+            "active": true,
+            "registered": true,
+            "paid": false
+        },
+        {
+            "id": 4,
+            "name": "michael jordan",
+            "email": "mj@gmail.com",
+            "grade": "7",
+            "active": true,
+            "registered": true,
+            "paid": true
+        }
+    ],
+    "teachers": [
+        {
+            "id": 1,
+            "name": "Muhammad",
+            "email": "muhammad@gmail.com",
+            "subject": "Computer Science",
+            "active": true
+        },
+        {
+            "id": 2,
+            "name": "Nachshon",
+            "email": "abc@gmail.com",
+            "subject": "Mathematics",
+            "active": true
+        },
+        {
+            "id": 3,
+            "name": "Josh",
+            "email": "josh@gmail.com",
+            "subject": "Mathematics",
+            "active": true
+        },
+        {
+            "id": 4,
+            "name": "lebron james",
+            "email": "lebron@gmail.com",
+            "subject": "basketball"
+        }
+    ],
+    "lessons": [
+        {
+            "id": 1,
+            "name": "Computer Science",
+            "teacher_id": 1,
+            "student_id": 215800335,
+            "date": "2025-01-10",
+            "time": "10:00",
+            "duration": 60,
+            "status": "scheduled"
+        },
+        {
+            "id": 2,
+            "name": "Mathematics",
+            "teacher_id": 1,
+            "student_id": 215800335,
+            "date": "2025-08-06",
+            "time": "12:30",
+            "duration": 60,
+            "status": "scheduled"
+        },
+        {
+            "id": 3,
+            "name": "Mathematics",
+            "teacher_id": 2,
+            "student_id": 1234,
+            "date": "2025-01-12",
+            "time": "20:00",
+            "duration": 60,
+            "status": "scheduled"
+        },
+        {
+            "id": 4,
+            "name": "math",
+            "teacher_id": 2,
+            "student_id": 123,
+            "date": "2025-01-26",
+            "time": "09:00",
+            "duration": 60,
+            "status": "scheduled"
+        }
+    ],
+    "payments": [
+        {
+            "id": 1,
+            "student_id": 215800335,
+            "amount": 100.0,
+            "date": "2025-01-09T12:51:11+02:00",
+            "payment_method": "credit_card",
+            "status": "completed"
+        },
+        {
+            "student_id": 4,
+            "amount": 100.0,
+            "payment_method": "Cash",
+            "date": "2025-01-26 18:47:49",
+            "status": "completed"
+        }
+    ]
+}

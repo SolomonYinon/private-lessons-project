@@ -1,7 +1,7 @@
 import tkinter as tk
 import json
 from tkinter import ttk
-from attendance.attendance_update_logic import update_attendance
+from .attendance_update_logic import update_attendance
 
 class AttendanceMarkingInterface:
     def __init__(self, master):

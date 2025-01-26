@@ -1,116 +1,110 @@
-from add_lesson.add_lesson_form import *
-from add_teacher.add_teacher_form import *
-from attendance.attendance_marking_interface import *
-from payment_tracking.payment_tracking_page import *
-from lesson_organization.lesson_organization_interface import *
-from payment.payment_interface import *
-from payment_tracking.payment_tracking_page import *
-from registration.registration_form import *
-from schedule.schedule_interface import *
-from student_list.student_list_page import *
-from student_management.student_management_page import *
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 
+# Import all interface classes
+from project.registration.registration_form import RegistrationForm
+from project.student_management.student_management_page import StudentManagementPage
+from project.schedule.schedule_interface import ScheduleInterface
+from project.payment.payment_interface import PaymentInterface
+from project.lesson_organization.lesson_organization_interface import LessonOrganizationInterface
+from project.attendance.attendance_marking_interface import AttendanceMarkingInterface
+from project.add_lesson.add_lesson_form import AddLessonForm
+from project.add_teacher.add_teacher_form import AddTeacherForm
+from project.payment_tracking.payment_tracking_page import PaymentTrackingPage
+from project.student_list.student_list_page import StudentListPage
 
-def add_lesson():
-    root = tk.Tk()
-    add_lesson = AddLessonForm(root)
-    root.mainloop()
+class MainApplication:
+    def __init__(self, master):
+        self.master = master
+        master.title("Private Lessons Project")
+        master.geometry('800x600')
 
-def add_teacher():
-    root = tk.Tk()
-    add_teacher = AddTeacherForm(root)
-    root.mainloop()
+        # Create main frame
+        main_frame = ttk.Frame(master, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
 
-def mark_attendance():
-    root = tk.Tk()
-    mark_attendance = AttendanceMarkingInterface(root)
-    root.mainloop()
+        # Title
+        title_label = ttk.Label(main_frame, text="Private Lessons Project", font=("Helvetica", 24))
+        title_label.pack(pady=20)
 
-def track_payment():
-    root = tk.Tk()
-    track_payment = PaymentTracking(root)
-    root.mainloop()
+        # Create buttons frame
+        buttons_frame = ttk.Frame(main_frame)
+        buttons_frame.pack(expand=True)
 
-def organize_lesson():
-    root = tk.Tk()
-    organize_lesson = LessonOrganizationInterface(root)
-    root.mainloop()
+        # Button styles
+        style = ttk.Style()
+        style.configure('Action.TButton', padding=10)
 
-def process_payment():
-    root = tk.Tk()
-    process_payment = PaymentInterface(root)
-    root.mainloop()
+        # Create buttons
+        buttons = [
+            ("Add Lesson", self.add_lesson),
+            ("Add Teacher", self.add_teacher),
+            ("Mark Attendance", self.mark_attendance),
+            ("Track Payment", self.track_payment),
+            ("Organize Lessons", self.organize_lessons),
+            ("Process Payment", self.process_payment),
+            ("Register Student", self.register_student),
+            ("View Schedule", self.view_schedule),
+            ("List Students", self.list_students),
+            ("Manage Student", self.manage_students),
+            ("Exit", self.exit)
+        ]
 
-def register_student():
-    root = tk.Tk()
-    register_student = RegistrationForm(root)
-    root.mainloop()
+        # Add buttons to frame
+        for text, command in buttons:
+            btn = ttk.Button(buttons_frame, text=text, command=command, style='Action.TButton')
+            btn.pack(fill=tk.X, pady=5)
 
-def view_schedule():
-    root = tk.Tk()
-    view_schedule = ScheduleInterface(root)
-    root.mainloop()
+    def add_lesson(self):
+        window = tk.Toplevel(self.master)
+        AddLessonForm(window)
 
-def list_students():
-    root = tk.Tk()
-    list_students = StudentListPage(root)
-    root.mainloop()
+    def add_teacher(self):
+        window = tk.Toplevel(self.master)
+        AddTeacherForm(window)
 
-def manage_student():
-    root = tk.Tk()
-    manage_student = StudentManagement(root)
-    root.mainloop()
+    def mark_attendance(self):
+        window = tk.Toplevel(self.master)
+        AttendanceMarkingInterface(window)
+
+    def track_payment(self):
+        window = tk.Toplevel(self.master)
+        PaymentTrackingPage(window)
+
+    def organize_lessons(self):
+        window = tk.Toplevel(self.master)
+        LessonOrganizationInterface(window)
+
+    def process_payment(self):
+        window = tk.Toplevel(self.master)
+        PaymentInterface(window)
+
+    def register_student(self):
+        window = tk.Toplevel(self.master)
+        RegistrationForm(window)
+
+    def view_schedule(self):
+        window = tk.Toplevel(self.master)
+        ScheduleInterface(window)
+
+    def list_students(self):
+        window = tk.Toplevel(self.master)
+        StudentListPage(window)
+
+    def manage_students(self):
+        window = tk.Toplevel(self.master)
+        StudentManagementPage(window)
+
+    def exit(self):
+        self.master.quit()
 
 def main():
     root = tk.Tk()
-    root.title("Private Lessons Project")
-
-    def on_select(option):
-        if option == '1':
-            add_lesson()
-        elif option == '2':
-            add_teacher()
-        elif option == '3':
-            mark_attendance()
-        elif option == '4':
-            track_payment()
-        elif option == '5':
-            organize_lesson()
-        elif option == '6':
-            process_payment()
-        elif option == '7':
-            register_student()
-        elif option == '8':
-            view_schedule()
-        elif option == '9':
-            list_students()
-        elif option == '10':
-            manage_student()
-        elif option == '11':
-            root.quit()
-        else:
-            messagebox.showerror("Error", "Invalid choice, please try again.")
-
-    options = [
-        "1. Add Lesson",
-        "2. Add Teacher",
-        "3. Mark Attendance",
-        "4. Track Payment",
-        "5. Organize Lesson",
-        "6. Process Payment",
-        "7. Register Student",
-        "8. View Schedule",
-        "9. List Students",
-        "10. Manage Student",
-        "11. Exit"
-    ]
-
-    for option in options:
-        button = tk.Button(root, text=option, command=lambda opt=option.split('.')[0]: on_select(opt))
-        button.pack(fill='x')
-
+    app = MainApplication(root)
     root.mainloop()
 
 if __name__ == "__main__":

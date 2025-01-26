@@ -6,16 +6,16 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 # Import all interface classes
-from project.registration.registration_form import RegistrationForm
-from project.student_management.student_management_page import StudentManagementPage
-from project.schedule.schedule_interface import ScheduleInterface
-from project.payment.payment_interface import PaymentInterface
-from project.lesson_organization.lesson_organization_interface import LessonOrganizationInterface
-from project.attendance.attendance_marking_interface import AttendanceMarkingInterface
-from project.add_lesson.add_lesson_form import AddLessonForm
-from project.add_teacher.add_teacher_form import AddTeacherForm
-from project.payment_tracking.payment_tracking_page import PaymentTrackingPage
-from project.student_list.student_list_page import StudentListPage
+from registration.registration_form import RegistrationForm
+from student_management.student_management_page import StudentManagementPage
+from schedule.schedule_interface import ScheduleInterface
+from payment.payment_interface import PaymentInterface
+from lesson_organization.lesson_organization_interface import LessonOrganizationInterface
+from attendance.attendance_marking_interface import AttendanceMarkingInterface
+from add_lesson.add_lesson_form import AddLessonForm
+from add_teacher.add_teacher_form import AddTeacherForm
+from payment_tracking.payment_tracking_page import PaymentTrackingPage
+from student_list.student_list_page import StudentListPage
 
 class MainApplication:
     def __init__(self, master):

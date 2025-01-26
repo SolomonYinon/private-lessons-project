@@ -124,5 +124,13 @@
             "date": "2025-01-26 18:47:49",
             "status": "completed"
         }
+    ],
+    "problems": [
+        {
+            "description": "i dont have enough information"
+        },
+        {
+            "description": "i dont understand"
+        }
     ]
 }

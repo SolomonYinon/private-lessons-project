@@ -16,6 +16,10 @@ from add_lesson.add_lesson_form import AddLessonForm
 from add_teacher.add_teacher_form import AddTeacherForm
 from payment_tracking.payment_tracking_page import PaymentTrackingPage
 from student_list.student_list_page import StudentListPage
+from problem_management.all_problems import AdminProblemViewer
+from problem_management.new_problem import ProblemSubmission
+from problems.auto_respond_bot import InquirySystem
+from problems.manule_to_create_a_problem import HelpWindow
 
 class MainApplication:
     def __init__(self, master):
@@ -51,6 +55,10 @@ class MainApplication:
             ("View Schedule", self.view_schedule),
             ("List Students", self.list_students),
             ("Manage Student", self.manage_students),
+            ("view Problems", self.view_problems),
+            ("Submit Problem", self.submit_problem),
+            ("Inquiry System", self.inquiry_system),
+            ("Help about problems", self.help),
             ("Exit", self.exit)
         ]
 
@@ -98,6 +106,22 @@ class MainApplication:
     def manage_students(self):
         window = tk.Toplevel(self.master)
         StudentManagementPage(window)
+    
+    def view_problems(self):
+        window = tk.Toplevel(self.master)
+        AdminProblemViewer(window)
+    
+    def submit_problem(self):
+        window = tk.Toplevel(self.master)
+        ProblemSubmission(window)
+
+    def inquiry_system(self):
+        window = tk.Toplevel(self.master)
+        InquirySystem(window)
+
+    def help(self):
+        window = tk.Toplevel(self.master)
+        HelpWindow(window)
 
     def exit(self):
         self.master.quit()

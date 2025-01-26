@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
-from project.payment.payment_gateway_integration import process_payment, get_payment_history
+from payment.payment_gateway_integration import process_payment, get_payment_history
 
 class PaymentInterface:
     def __init__(self, master):
